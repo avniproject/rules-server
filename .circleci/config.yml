@@ -114,9 +114,7 @@ jobs:
 
       - setup_remote_docker
 
-      - run: mkdir -p rules-server
-
-      - run: unzip ~/artifacts/rules-server.zip -d rules-server
+      - run: unzip ~/artifacts/rules-server.zip
 
       - run:
           name: Determine Docker Tags
@@ -140,7 +138,7 @@ jobs:
       - run:
           name: Build Multi-Platform Docker Image
           command: |
-            cd rules-server/rules-server
+            cd rules-server
             source $BASH_ENV
             docker buildx create --use
             docker buildx build --platform linux/amd64,linux/arm64 --tag "$DOCKER_USERNAME/rules-server:${DOCKER_TAG}" --push -f Dockerfile .
