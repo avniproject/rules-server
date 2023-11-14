@@ -105,7 +105,7 @@ jobs:
  
   build_docker_image:
     docker:
-      - image: docker:latest
+      - image: docker:git
     resource_class: medium
     working_directory: ~/rules-server
     steps:
