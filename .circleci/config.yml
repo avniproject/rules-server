@@ -189,7 +189,7 @@ jobs:
       - image: cimg/deploy:2023.09-node
     working_directory: ~/
     steps:
-      - deploy:
+      - deploy_ansible:
           env: "staging"
   PRERELEASE_deploy:
     docker:
