@@ -81,7 +81,8 @@ jobs:
           paths:
             - ./node_modules
 
-      - run: zip -r ~/rules-server.zip ../rules-server
+# https://serverfault.com/questions/265675/how-can-i-zip-compress-a-symlink
+      - run: zip --symlinks -r ~/rules-server.zip ../rules-server
 
       - run: tar -czvf ~/rules-server.tgz  -C ../rules-server .
 
