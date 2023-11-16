@@ -177,14 +177,14 @@ jobs:
               docker buildx build --platform linux/amd64,linux/arm64 --tag "$DOCKER_USERNAME/rules-server:${SHORT_CIRCLE_SHA}" --push -f Dockerfile .
             fi
 
+#  STAGING_deploy:
+#    docker:
+#      - image: cimg/node:10.24.1
+#    working_directory: ~/
+#    steps:
+#      - deploy:
+#          hostname: "ssh.staging.openchs.org"
   STAGING_deploy:
-    docker:
-      - image: cimg/node:10.24.1
-    working_directory: ~/
-    steps:
-      - deploy:
-          hostname: "ssh.staging.openchs.org"
-  NEW_STAGING_deploy:
     docker:
       - image: cimg/deploy:2023.09-node
     working_directory: ~/
@@ -237,6 +237,10 @@ workflows:
               only: /.*/
             branches:
               only: master
+      - STAGING_approve:
+          type: approval
+          requires:
+            - app_build
       - STAGING_deploy:
           context: non-prod-deploy
           filters:
@@ -245,15 +249,15 @@ workflows:
                 - master
                 - /^3\..*/
           requires:
-            - app_build
-      - NEW_STAGING_approve:
-          type: approval
-          requires:
-            - app_build
-      - NEW_STAGING_deploy:
-          context: non-prod-deploy
-          requires:
-            - NEW_STAGING_approve
+            - STAGING_approve
+#      - NEW_STAGING_approve:
+#          type: approval
+#          requires:
+#            - app_build
+#      - NEW_STAGING_deploy:
+#          context: non-prod-deploy
+#          requires:
+#            - NEW_STAGING_approve
       - PRODUCTION_approve:
           type: approval
           requires:
