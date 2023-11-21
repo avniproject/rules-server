@@ -177,13 +177,6 @@ jobs:
               docker buildx build --platform linux/amd64,linux/arm64 --tag "$DOCKER_USERNAME/rules-server:${SHORT_CIRCLE_SHA}" --push -f Dockerfile .
             fi
 
-#  STAGING_deploy:
-#    docker:
-#      - image: cimg/node:10.24.1
-#    working_directory: ~/
-#    steps:
-#      - deploy:
-#          hostname: "ssh.staging.openchs.org"
   STAGING_deploy:
     docker:
       - image: cimg/deploy:2023.09-node
@@ -191,13 +184,6 @@ jobs:
     steps:
       - deploy_ansible:
           env: "staging"
-#  PRERELEASE_deploy:
-#    docker:
-#      - image: cimg/node:10.24.1
-#    working_directory: ~/
-#    steps:
-#      - deploy:
-#          hostname: "ssh.prerelease.openchs.org"
   PRERELEASE_deploy:
     docker:
       - image: cimg/deploy:2023.09-node
@@ -212,6 +198,13 @@ jobs:
     steps:
       - deploy:
           hostname: "ssh.perf.openchs.org"
+  NEW_PRODUCTION_deploy:
+    docker:
+      - image: cimg/deploy:2023.09-node
+    working_directory: ~/
+    steps:
+      - deploy_ansible:
+          env: "prod"
   PRODUCTION_deploy:
     docker:
       - image: cimg/node:10.24.1
@@ -265,6 +258,14 @@ workflows:
           context: prod-deploy
           requires:
             - PRODUCTION_approve
+      - NEW_PRODUCTION_approve:
+          type: approval
+          requires:
+            - app_build
+      - NEW_PRODUCTION_deploy:
+          context: prod-deploy
+          requires:
+            - NEW_PRODUCTION_approve
       - PRERELEASE_approve:
           type: approval
           requires:
