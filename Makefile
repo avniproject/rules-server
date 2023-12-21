@@ -1,18 +1,17 @@
-set-node-version:
-	. ${NVM_DIR}/nvm.sh && nvm use
-
 clean:
 	rm -rf node_modules
 
-deps: set-node-version
+deps:
 	npm install
 
-start: set-node-version
+start:
 	npm start
 	#ENV='UTC' npm start
 
-test: set-node-version
+tests:
 	npm test
+
+test: tests
 
 zip-app:
 	npm install
@@ -21,4 +20,3 @@ zip-app:
 zip-app-only:
 	-rm rules-server.tgz
 	tar -czvf rules-server.tgz  -C ../rules-server .
-
