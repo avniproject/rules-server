@@ -13,6 +13,7 @@ import {
     isEligibleForEntityType
 } from './services/RuleEvalService';
 import {map} from 'lodash';
+import {mapUser} from './models/userModel';
 
 export const transformVisitScheduleDates = (visitSchedules) => {
     visitSchedules.forEach((visitSchedule, index, array) => {
@@ -22,6 +23,7 @@ export const transformVisitScheduleDates = (visitSchedules) => {
     return visitSchedules;
 }
 const mappers = {
+    "User": mapUser,
     "Individual": mapIndividual,
     "Subject": mapIndividual,
     "ProgramEnrolment": mapProgramEnrolment,
