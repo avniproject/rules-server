@@ -198,20 +198,13 @@ jobs:
     steps:
       - deploy:
           hostname: "ssh.perf.openchs.org"
-  NEW_PRODUCTION_deploy:
+  PRODUCTION_deploy:
     docker:
       - image: cimg/deploy:2023.09-node
     working_directory: ~/
     steps:
       - deploy_ansible:
           env: "prod"
-  PRODUCTION_deploy:
-    docker:
-      - image: cimg/node:10.24.1
-    working_directory: ~/
-    steps:
-      - deploy:
-          hostname: "ssh.server.openchs.org"
           
 tags_filter: &tags_filter
   filters:
@@ -258,14 +251,6 @@ workflows:
           context: prod-deploy
           requires:
             - PRODUCTION_approve
-      - NEW_PRODUCTION_approve:
-          type: approval
-          requires:
-            - app_build
-      - NEW_PRODUCTION_deploy:
-          context: prod-deploy
-          requires:
-            - NEW_PRODUCTION_approve
       - PRERELEASE_approve:
           type: approval
           requires:
