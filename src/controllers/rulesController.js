@@ -62,12 +62,18 @@ export const buildObservationAndRunRules = async (req, res, next) => {
         const responseContract = await BuildObservations(req.body);
         res.status(200).json(responseContract);
     } catch (err) {
+        console.log(err);
         res.status(222)
             .json({
                 errors: [`Error in rule server. Message: "${get(err, 'message')}", Stack: "${get(err, 'stack')}"`]
             })
     }
 };
+
+export const getStatus = async function(req, res, next) {
+    console.debug("Getting status");
+    res.status(200).send('Rule server is up and running with upload user as: ' + process.env.OPENCHS_UPLOAD_USER_USER_NAME);
+}
 
 export const rulesController = delegateTo(executeRule);
 export const summary = delegateTo(executeSummaryRule);

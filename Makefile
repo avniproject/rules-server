@@ -8,6 +8,17 @@ start:
 	npm start
 	#ENV='UTC' npm start
 
+start-live-dev:
+ifndef user
+	@echo "Provde the user variable"
+	exit 1
+endif
+ifndef password
+	@echo "Provde the password variable"
+	exit 1
+endif
+	OPENCHS_UPLOAD_USER_USER_NAME=$(user) OPENCHS_UPLOAD_USER_PASSWORD=$(password) npm start
+
 tests:
 	npm test
 
