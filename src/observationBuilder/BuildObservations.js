@@ -261,7 +261,7 @@ async function addObservationValue(observationsHolder, concept, fe, row, errors,
                             return s3Urls;
                         })
                 })).catch(error => errors.push(`Column: "${concept.name}" Error message: "${error}"`));
-                console.log("s3Urls =>>", s3Urls);
+                console.debug("s3Urls =>>", s3Urls);
                 addOrUpdateObs(fe, s3Urls, observationsHolder);
             } else {
                 const oldValue = observationsHolder.getObservationReadableValue(concept);

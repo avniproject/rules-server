@@ -23,5 +23,5 @@ app.use(function (err, req, res, next) {
 })
 
 app.listen(3000, function(){
-    console.log('Example application listening on port 3000!')
+    console.log('Avni Rule Server listening on port 3000!')
 })

@@ -6,14 +6,14 @@ import _ from 'lodash';
 // During CSV upload token sent by the java server might expire so we use upload-user for
 // communicating the java server
 export const setUploadUser = async () => {
-    console.log("Cognito details ", cognitoDetails);
+    console.debug("Cognito details ", cognitoDetails);
     if (cognitoDetails.isEmpty()) {
         const details = await api.getCognitoDetails();
-        console.log("Fetched details ", details);
+        console.debug("Fetched details ", details);
         cognitoDetails.setDetails(details);
     }
     if (!cognitoDetails.isDummy()) {
-        console.log("Setting up upload user");
+        console.debug("Setting up upload user");
         await setupUploadUser();
     }
 };
@@ -25,7 +25,7 @@ const setupUploadUser = async () => {
         userPoolWebClientId: cognitoDetails.clientId
     });
     const currentUser = await Auth.currentUserInfo();
-    console.log("Current user info ", currentUser);
+    console.debug("Current user info ", currentUser);
     if (_.isEmpty(currentUser) || currentUser.username !== 'upload-user') {
         await signIn();
     }

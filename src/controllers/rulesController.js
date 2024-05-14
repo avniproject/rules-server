@@ -23,7 +23,7 @@ const delegateTo = (fn) => async (req, res, next) => {
 }
 
 function catchRuleError(err, res) {
-    console.log(err);
+    console.warn("rulesController", "catchRuleError", err);
     res.status(222)
         .json({
             status: 'failure',
@@ -44,7 +44,7 @@ const setGlobalAxiosHeaders = (req) => {
     const userName = req.get(USER_NAME_HEADER);
     const authToken = req.get(AUTH_TOKEN_HEADER);
     const orgUuid = req.get(ORGANISATION_UUID_HEADER);
-    console.log(`Headers from req: ${userName} ${authToken} ${orgUuid}`);
+    console.debug(`Headers from req: ${userName} ${authToken} ${orgUuid}`);
 
     if(userName)
         axios.defaults.headers.common[USER_NAME_HEADER] = userName;
@@ -62,7 +62,7 @@ export const buildObservationAndRunRules = async (req, res, next) => {
         const responseContract = await BuildObservations(req.body);
         res.status(200).json(responseContract);
     } catch (err) {
-        console.log(err);
+        console.error("rulesController", "buildObservationAndRunRules", err);
         res.status(222)
             .json({
                 errors: [`Error in rule server. Message: "${get(err, 'message')}", Stack: "${get(err, 'stack')}"`]

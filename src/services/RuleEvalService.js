@@ -68,10 +68,10 @@ export const visitScheduleRule = async (rule, entity, scheduledVisits) => {
     } else if (!isEmpty(rulesFromTheBundle)) {
         const nextVisits = rulesFromTheBundle
             .reduce((schedule, rule) => {
-                console.log(`RuleEvaluationService`, `Executing Rule: ${rule.name} Class: ${rule.fnName}`);
+                console.info(`RuleEvaluationService`, `Executing Rule: ${rule.name} Class: ${rule.fnName}`);
                 return runRuleAndSaveFailure(rule, entityName, entity, schedule);
             }, scheduledVisits);
-        console.log("RuleEvaluationService - Next Visits", nextVisits);
+        console.debug("RuleEvaluationService - Next Visits", nextVisits);
         return nextVisits;
     }
     return scheduledVisits;
@@ -170,7 +170,7 @@ const runRuleAndSaveFailure = (rule, entityName, entity, ruleTypeValue, config, 
                 : rule.fn.exec(entity, ruleTypeValue, context, config);
         }
     } catch (error) {
-        console.log("Rule-Failure", `Rule failed: ${rule.name}, uuid: ${rule.uuid}`);
+        console.error("Rule-Failure", `Rule failed: ${rule.name}, uuid: ${rule.uuid}`);
         return ruleTypeValue;
     }
 };
