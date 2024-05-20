@@ -3,8 +3,8 @@ import {
     cleanRulesCache,
     summary,
     buildObservationAndRunRules, encounterEligibility,
-    schedule,
-    message, messagingResponse
+    messagingResponse,
+    getStatus
 } from "../src/controllers/rulesController";
 
 const express = require('express');
@@ -16,5 +16,6 @@ router.post('/api/summaryRule', summary);
 router.post('/api/encounterEligibility', encounterEligibility);
 router.post('/api/upload', buildObservationAndRunRules);
 router.post('/api/messagingRule', messagingResponse);
+router.get('/api/status', getStatus);
 
 module.exports = router;
