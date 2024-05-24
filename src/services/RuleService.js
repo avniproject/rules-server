@@ -5,6 +5,7 @@ import api from "./api";
 import cache from "./cache";
 import axios from "axios";
 import {ORGANISATION_UUID_HEADER} from "../controllers/UserHeaders";
+import {getUploadUserToken} from "./AuthService";
 
 class RuleService {
     constructor() {
@@ -39,7 +40,8 @@ class RuleService {
             return result;
         } else {
             console.debug("RuleService", "Cache hit unsuccessful");
-            let bundleCode = await api.getLegacyRulesBundle();
+            const token = await getUploadUserToken();
+            let bundleCode = await api.getLegacyRulesBundle(token);
             let ruleServiceLibraryInterfaceForSharingModules = {
                 log: console.log,
                 common: common,
@@ -56,7 +58,8 @@ class RuleService {
     }
 
     async _getRules() {
-        let newVar = await api.getLegacyRules();
+        const token = await getUploadUserToken();
+        let newVar = await api.getLegacyRules(token);
         return newVar;
     }
 }
