@@ -6,11 +6,11 @@ const BASE_URL = "http://localhost:8021";
 export default {
     getLegacyRulesBundle: (token) =>
         axios
-            .get(BASE_URL + "/ruleDependency/search/lastModified?lastModifiedDateTime=1900-01-01T00:00:00.000Z&size=1000", putTokenHeader(token))
+            .get(BASE_URL + "/ruleDependency/search/lastModified?lastModifiedDateTime=1900-01-01T00:00:00.000Z&size=1000", token && putTokenHeader(token))
             .then(response => get(response, "data._embedded.ruleDependency[0].code")),
     getLegacyRules: (token) =>
         axios
-            .get(BASE_URL + "/rule/search/lastModified?lastModifiedDateTime=1900-01-01T00:00:00.000Z&size=1000", putTokenHeader(token))
+            .get(BASE_URL + "/rule/search/lastModified?lastModifiedDateTime=1900-01-01T00:00:00.000Z&size=1000", token && putTokenHeader(token))
             .then(response => get(response, "data._embedded.rule")),
     getSubjects: (addressLevelUUID, subjectTypeName) =>
         axios

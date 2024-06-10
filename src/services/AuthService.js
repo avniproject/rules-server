@@ -12,7 +12,7 @@ export const setUploadUser = async () => {
         console.debug("Fetched details ", details);
         cognitoDetails.setDetails(details);
     }
-    if (!cognitoDetails.isDummy()) {
+    if (!(cognitoDetails.isDummy() || cognitoDetails.isEmpty())) {
         console.debug("Setting up upload user");
         await setupUploadUser();
     }
@@ -37,7 +37,7 @@ const signIn = async function () {
 };
 
 export const getUploadUserToken = async () => {
-    if (cognitoDetails.isDummy()) return null;
+    if (cognitoDetails.isDummy() || cognitoDetails.isEmpty()) return null;
     console.debug("Getting upload user token");
     const currentSession = await Auth.currentSession();
     const jwtToken = currentSession.idToken.jwtToken;
