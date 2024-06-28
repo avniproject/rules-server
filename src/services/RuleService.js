@@ -1,10 +1,11 @@
 import {defaults, identity, isFunction, isEmpty} from "lodash";
-import { common, motherCalculations } from "avni-health-modules";
+import {common, motherCalculations} from "avni-health-modules";
 import * as models from "openchs-models";
 import api from "./api";
 import cache from "./cache";
 import axios from "axios";
 import {ORGANISATION_UUID_HEADER} from "../controllers/UserHeaders";
+import {getUploadUserToken} from "./AuthService";
 
 class RuleService {
     constructor() {
@@ -12,7 +13,7 @@ class RuleService {
     }
 
     async getApplicableRules(entityUuid, ruleType, ruledEntityType) {
-        console.log("RuleService",
+        console.debug("RuleService",
             `Getting Rules of Type ${ruleType} for ${ruledEntityType} - ${entityUuid}`);
         const rules = await this._getRules();
         const matchingRules = rules
@@ -24,7 +25,7 @@ class RuleService {
     }
 
     async _getRuleFunctions(rules = []) {
-    	if (isEmpty(rules)) return [];
+        if (isEmpty(rules)) return [];
         const allRules = await this._getRuleFunctionsFromBundle();
         return defaults(rules, [])
             .filter(ar => isFunction(allRules[ar.fnName]) && isFunction(allRules[ar.fnName].exec))
@@ -34,12 +35,13 @@ class RuleService {
     async _getRuleFunctionsFromBundle() {
         const orgUuid = axios.defaults.headers.common[ORGANISATION_UUID_HEADER];
         let result = cache[orgUuid];
-        if(result) {
-            console.log("RuleService", "Cache hit successful");
+        if (result) {
+            console.debug("RuleService", "Cache hit successful");
             return result;
         } else {
-            console.log("RuleService", "Cache hit unsuccessful");
-            let bundleCode = await api.getLegacyRulesBundle();
+            console.debug("RuleService", "Cache hit unsuccessful");
+            const token = await getUploadUserToken();
+            let bundleCode = await api.getLegacyRulesBundle(token);
             let ruleServiceLibraryInterfaceForSharingModules = {
                 log: console.log,
                 common: common,
@@ -56,7 +58,8 @@ class RuleService {
     }
 
     async _getRules() {
-        let newVar = await api.getLegacyRules();
+        const token = await getUploadUserToken();
+        let newVar = await api.getLegacyRules(token);
         return newVar;
     }
 }
