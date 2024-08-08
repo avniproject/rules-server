@@ -11,7 +11,7 @@
     "safe-eval": "^0.4.1",
     "uuid": "^7.0.2",
     "avni-health-modules": "0.0.26",
-    "openchs-models": "1.31.86",
+    "openchs-models": "1.32.2",
     "rules-config": "https://github.com/avniproject/rules-config.git#fe552da405368bfd138e2f38e605c1d307e3ebe4",
     "lodash": "^4.17.11",
     "moment": "^2.22.2"
