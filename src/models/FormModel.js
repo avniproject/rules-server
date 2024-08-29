@@ -30,7 +30,6 @@ const mapFormElementGroup = (formElementGroupJson, form) => {
             "uuid",
             "name",
             "displayOrder",
-            "display",
             "voided",
             "rule",
         ]);
