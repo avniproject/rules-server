@@ -8,12 +8,13 @@ import {ORGANISATION_UUID_HEADER, AUTH_TOKEN_HEADER, USER_NAME_HEADER} from "./U
 import axios from "axios";
 import cache from "../services/cache";
 import {BuildObservations} from "../observationBuilder/BuildObservations";
-import {setUploadUser} from "../services/AuthService";
+import {setupCognitoDetails, setUploadUser} from "../services/AuthService";
 import {get} from 'lodash';
 
 const delegateTo = (fn) => async (req, res, next) => {
     try {
         setGlobalAxiosHeaders(req);
+        await setupCognitoDetails();
         const ruleResponse = await fn(req.body);
         ruleResponse.status = "success";
         res.status(200).json(ruleResponse);

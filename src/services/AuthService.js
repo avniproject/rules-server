@@ -4,14 +4,18 @@ import {Auth} from 'aws-amplify';
 import _ from 'lodash';
 
 // During CSV upload token sent by the java server might expire so we use upload-user for
-// communicating the java server
-export const setUploadUser = async () => {
+export const setupCognitoDetails = async () => {
     console.debug("Cognito details ", cognitoDetails);
     if (cognitoDetails.isEmpty()) {
         const details = await api.getCognitoDetails();
         console.debug("Fetched details ", details);
         cognitoDetails.setDetails(details);
     }
+}
+
+// communicating the java server
+export const setUploadUser = async () => {
+    await setupCognitoDetails();
     if (!(cognitoDetails.isDummy() || cognitoDetails.isEmpty())) {
         console.debug("Setting up upload user");
         await setupUploadUser();
@@ -39,7 +43,14 @@ const signIn = async function () {
 export const getUploadUserToken = async () => {
     if (cognitoDetails.isDummy() || cognitoDetails.isEmpty()) return null;
     console.debug("Getting upload user token");
-    const currentSession = await Auth.currentSession();
+    let currentSession;
+    try {
+        currentSession = await Auth.currentSession();
+    } catch(e) {
+        console.error("No current user, redoing setup of upload user");
+        await setUploadUser();
+        currentSession = await Auth.currentSession();
+    }
     const jwtToken = currentSession.idToken.jwtToken;
     console.debug("Upload user token ", jwtToken);
     return jwtToken;
