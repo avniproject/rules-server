@@ -7,9 +7,10 @@ import _ from 'lodash';
 export const setupCognitoDetails = async () => {
     console.debug("Cognito details ", cognitoDetails);
     if (cognitoDetails.isEmpty()) {
-        const details = await api.getCognitoDetails();
-        console.debug("Fetched details ", details);
-        cognitoDetails.setDetails(details);
+        return api.getCognitoDetails().then(details => {
+            console.debug("Fetched details ", details);
+            cognitoDetails.setDetails(details);
+        }, _.noop);
     }
 }
 
