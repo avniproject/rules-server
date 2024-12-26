@@ -40,17 +40,17 @@ const signIn = async function () {
     await Auth.signIn(process.env.OPENCHS_UPLOAD_USER_USER_NAME, process.env.OPENCHS_UPLOAD_USER_PASSWORD);
 };
 
+async function getCurrentSession() {
+    return Auth.currentSession().catch(e => {
+        console.error("No current user, redoing setup of upload user");
+        return setUploadUser().then(() => Auth.currentSession());
+    });
+}
+
 export const getUploadUserToken = async () => {
     if (cognitoDetails.isDummy() || cognitoDetails.isEmpty()) return null;
     console.debug("Getting upload user token");
-    let currentSession;
-    try {
-        currentSession = await Auth.currentSession();
-    } catch(e) {
-        console.error("No current user, redoing setup of upload user");
-        await setUploadUser();
-        currentSession = await Auth.currentSession();
-    }
+    let currentSession = await getCurrentSession();
     const jwtToken = currentSession.idToken.jwtToken;
     console.debug("Upload user token ", jwtToken);
     return jwtToken;
