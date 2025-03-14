@@ -2,6 +2,8 @@ import api from "./api";
 import {map} from 'lodash';
 import {mapIndividual} from "../models/individualModel";
 
+const notSupportedMessage = "Method not supported.";
+
 class IndividualService {
 
     constructor() {
@@ -14,6 +16,10 @@ class IndividualService {
 
     getSubjectByUUID(uuid) {
         return api.getSubjectByUUID(uuid);
+    }
+
+    findAllSubjectsWithMobileNumberForType(mobileNumber, subjectTypeUUID) {
+        throw Error(notSupportedMessage);
     }
 
 }
