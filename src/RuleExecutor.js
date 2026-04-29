@@ -13,7 +13,7 @@ import {
     isEligibleForEntityType
 } from './services/RuleEvalService';
 import {map} from 'lodash';
-import {mapUser} from './models/userModel';
+import {mapMyUserGroups, mapUser} from './models/userModel';
 
 export const transformVisitScheduleDates = (visitSchedules) => {
     visitSchedules.forEach((visitSchedule, index, array) => {
@@ -54,15 +54,21 @@ const bundleEligibilityCheckRuleParamsMapper = {
     }
 }
 
+export const buildRuleContext = (requestBody) => ({
+    user: mapUser(requestBody.currentUser),
+    myUserGroups: mapMyUserGroups(requestBody.myUserGroups),
+});
+
 export const executeRule = async (requestBody) => {
     const mapEntity = mappers[requestBody.rule.workFlowType];
     if (!mapEntity)
         throw new Error("Value of workFlowType param is invalid");
     const entity = mapEntity(requestBody);
+    const context = buildRuleContext(requestBody);
     return {
-        "decisions": await decisionRule(requestBody.rule, entity),
-        "visitSchedules": transformVisitScheduleDates(await visitScheduleRule(requestBody.rule, entity, requestBody.visitSchedules)),
-        "checklists": await checkListRule(requestBody.rule, entity, requestBody.checklistDetails)
+        "decisions": await decisionRule(requestBody.rule, entity, context),
+        "visitSchedules": transformVisitScheduleDates(await visitScheduleRule(requestBody.rule, entity, requestBody.visitSchedules, context)),
+        "checklists": await checkListRule(requestBody.rule, entity, requestBody.checklistDetails, context)
     }
 }
 
@@ -72,15 +78,17 @@ export const executeSummaryRule = async (requestBody) => {
     if (!mapEntity)
         throw new Error("Value of workFlowType param is invalid");
     const entity = mapEntity(requestBody);
+    const context = buildRuleContext(requestBody);
     return {
-        "summaries": await summaryRule[workflowType](requestBody.rule, entity)
+        "summaries": await summaryRule[workflowType](requestBody.rule, entity, context)
     }
 };
 
 export const executeEligibilityCheckRule = async (requestBody) => {
     const {individual, entityTypes, ruleEntityType} = requestBody;
     const individualModel = mapIndividual(individual);
-    const eligibilityRuleEntities = await Promise.all(map(entityTypes, et => isEligibleForEntityType(individualModel, createTypeMapper[ruleEntityType](et), bundleEligibilityCheckRuleParamsMapper[ruleEntityType])));
+    const context = buildRuleContext(requestBody);
+    const eligibilityRuleEntities = await Promise.all(map(entityTypes, et => isEligibleForEntityType(individualModel, createTypeMapper[ruleEntityType](et), bundleEligibilityCheckRuleParamsMapper[ruleEntityType], context)));
     return {eligibilityRuleEntities};
 };
 
@@ -90,6 +98,7 @@ export const executeMessagingRule = async (requestBody) => {
     if (!mapEntity)
         throw new Error("Value of entityType param is invalid");
     const model = mapEntity(entity);
+    const context = buildRuleContext(requestBody);
 
-    return await messagingRule(rule, model);
+    return await messagingRule(rule, model, context);
 }

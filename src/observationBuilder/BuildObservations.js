@@ -24,7 +24,7 @@ import {mapIndividual} from "../models/individualModel";
 import {mapEncounter} from "../models/encounterModel";
 import {mapProgramEncounter} from "../models/programEncounterModel";
 import {mapProgramEnrolment} from "../models/programEnrolmentModel";
-import {transformVisitScheduleDates} from "../RuleExecutor";
+import {buildRuleContext, transformVisitScheduleDates} from "../RuleExecutor";
 import api from "../services/api";
 import {getUploadUserToken} from "../services/AuthService";
 
@@ -38,11 +38,13 @@ const formTypeToEntityMapper = {
     ProgramEnrolment: mapProgramEnrolment,
 };
 
-export const BuildObservations = async ({row, form, entity}) => {
+export const BuildObservations = async (requestBody) => {
+    const {row, form, entity} = requestBody;
     const entityModel = formTypeToEntityMapper[form.formType](entity);
     const observationsHolder = new ObservationsHolder([]);
     const errors = [];
     const formModel = mapForm(form);
+    const ruleCtx = buildRuleContext(requestBody);
     const allValidationResults = [];
     const handleValidationResults = (validationResults) => {
         validationResults.forEach((validationResult) => handleValidationResult(validationResult));
@@ -61,7 +63,7 @@ export const BuildObservations = async ({row, form, entity}) => {
             const concept = fe.concept;
             await addObservationValue(observationsHolder, concept, fe, row, errors, allFormElements);
             entityModel.observations = observationsHolder.observations;
-            const formElementStatuses = getFormElementStatuses(entityModel, feg, observationsHolder);
+            const formElementStatuses = getFormElementStatuses(entityModel, feg, observationsHolder, ruleCtx);
             filteredFormElements = FormElementGroup._sortedFormElements(feg.filterElements(formElementStatuses));
             observationsHolder.updatePrimitiveCodedObs(filteredFormElements, formElementStatuses);
             const obsValue = observationsHolder.getObservationReadableValue(concept);
@@ -87,11 +89,11 @@ export const BuildObservations = async ({row, form, entity}) => {
     }
     if (!isEmpty(formModel.decisionRule)) {
         const payload = {decisionCode: formModel.decisionRule, formUuid: formModel.uuid};
-        responseObject.decisions = await decisionRule(payload, entityModel);
+        responseObject.decisions = await decisionRule(payload, entityModel, ruleCtx);
     }
     if (!isEmpty(formModel.visitScheduleRule)) {
         const payload = {visitScheduleCode: formModel.visitScheduleRule, formUuid: formModel.uuid};
-        responseObject.visitSchedules = transformVisitScheduleDates(await visitScheduleRule(payload, entityModel, []));
+        responseObject.visitSchedules = transformVisitScheduleDates(await visitScheduleRule(payload, entityModel, [], ruleCtx));
     }
     return responseObject;
 };
@@ -306,8 +308,8 @@ const getFormElementByUUID = (form, formElementUUID) => {
     return formElement;
 };
 
-const getFormElementStatuses = (entity, formElementGroup, observationsHolder) => {
-    const formElementStatuses = getFormElementsStatuses(entity, formElementGroup);
+const getFormElementStatuses = (entity, formElementGroup, observationsHolder, ruleCtx) => {
+    const formElementStatuses = getFormElementsStatuses(entity, formElementGroup, ruleCtx);
     const filteredFormElements = FormElementGroup._sortedFormElements(
         formElementGroup.filterElements(formElementStatuses)
     );
@@ -318,7 +320,7 @@ const getFormElementStatuses = (entity, formElementGroup, observationsHolder) =>
     if (isEmpty(removedObs)) {
         return formElementStatuses;
     }
-    return getFormElementStatuses(entity, formElementGroup, observationsHolder);
+    return getFormElementStatuses(entity, formElementGroup, observationsHolder, ruleCtx);
 };
 
 const splitMultiSelectAnswer = str => {
