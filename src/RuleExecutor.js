@@ -84,11 +84,24 @@ export const executeSummaryRule = async (requestBody) => {
     }
 };
 
+const isEligibleEvenIfRuleFails = async (individualModel, entityType, bundleRuleParams, context) => {
+    try {
+        return await isEligibleForEntityType(individualModel, entityType, bundleRuleParams, context);
+    } catch (err) {
+        console.log(err);
+        return {
+            isEligible: true,
+            typeUUID: entityType.uuid,
+            error: {message: err.message, stack: err.stack}
+        };
+    }
+};
+
 export const executeEligibilityCheckRule = async (requestBody) => {
     const {individual, entityTypes, ruleEntityType} = requestBody;
     const individualModel = mapIndividual(individual);
     const context = buildRuleContext(requestBody);
-    const eligibilityRuleEntities = await Promise.all(map(entityTypes, et => isEligibleForEntityType(individualModel, createTypeMapper[ruleEntityType](et), bundleEligibilityCheckRuleParamsMapper[ruleEntityType], context)));
+    const eligibilityRuleEntities = await Promise.all(map(entityTypes, et => isEligibleEvenIfRuleFails(individualModel, createTypeMapper[ruleEntityType](et), bundleEligibilityCheckRuleParamsMapper[ruleEntityType], context)));
     return {eligibilityRuleEntities};
 };
 
