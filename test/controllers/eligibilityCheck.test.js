@@ -146,7 +146,7 @@ test("a rule that throws something other than an Error still reports a message",
 
 test("a rule that throws a value that cannot be converted to text is still kept eligible on its own", async () => {
     const res = await checkEligibility([
-        program("throws-bare-object", "'use strict'; ({params, imports}) => { throw Object.create(null); };"),
+        program("throws-bare-object", "'use strict'; ({params, imports}) => { const value = Object.create(null); value.self = value; throw value; };"),
         program("ineligible", "'use strict'; ({params, imports}) => false;"),
     ]);
 
@@ -154,5 +154,15 @@ test("a rule that throws a value that cannot be converted to text is still kept 
     expect(res.json.mock.calls[0][0].eligibilityRuleEntities).toEqual([
         {isEligible: true, typeUUID: "throws-bare-object", error: {message: "Rule threw a value that cannot be converted to text", stack: "Rule threw a value that cannot be converted to text"}},
         {isEligible: false, typeUUID: "ineligible"},
+    ]);
+});
+
+test("a rule that throws a plain object reports the object, not [object Object]", async () => {
+    const res = await checkEligibility([
+        program("throws-object", "'use strict'; ({params, imports}) => { throw {code: 'QA1079', reason: 'bad data'}; };"),
+    ]);
+
+    expect(res.json.mock.calls[0][0].eligibilityRuleEntities).toEqual([
+        {isEligible: true, typeUUID: "throws-object", error: {message: '{"code":"QA1079","reason":"bad data"}', stack: '{"code":"QA1079","reason":"bad data"}'}},
     ]);
 });

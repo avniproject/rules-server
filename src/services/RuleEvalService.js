@@ -131,7 +131,8 @@ export const subjectSummaryRule = async (rule, entity, context) => {
 
 const describeThrownValue = (value) => {
     try {
-        return String(value);
+        const json = _.isObject(value) ? JSON.stringify(value) : undefined;
+        return json || String(value);
     } catch (e) {
         return "Rule threw a value that cannot be converted to text";
     }
