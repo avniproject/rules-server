@@ -129,10 +129,13 @@ export const subjectSummaryRule = async (rule, entity, context) => {
     return [];
 };
 
+const maxThrownValueLength = 500;
+
 const describeThrownValue = (value) => {
     try {
-        const json = _.isObject(value) ? JSON.stringify(value) : undefined;
-        return json || String(value);
+        const json = _.isObject(value) && !(value instanceof Error) ? JSON.stringify(value) : undefined;
+        const text = json && json !== "{}" ? json : String(value);
+        return text.length > maxThrownValueLength ? `${text.slice(0, maxThrownValueLength)}...` : text;
     } catch (e) {
         return "Rule threw a value that cannot be converted to text";
     }

@@ -166,3 +166,15 @@ test("a rule that throws a plain object reports the object, not [object Object]"
         {isEligible: true, typeUUID: "throws-object", error: {message: '{"code":"QA1079","reason":"bad data"}', stack: '{"code":"QA1079","reason":"bad data"}'}},
     ]);
 });
+
+test("an Error without a message is reported by its name, and a large thrown object is cut short", async () => {
+    const res = await checkEligibility([
+        program("throws-empty-error", "'use strict'; ({params, imports}) => { throw new TypeError(); };"),
+        program("throws-large-object", "'use strict'; ({params, imports}) => { throw {data: 'x'.repeat(2000)}; };"),
+    ]);
+
+    const [emptyError, largeObject] = res.json.mock.calls[0][0].eligibilityRuleEntities;
+    expect(emptyError).toMatchObject({isEligible: true, typeUUID: "throws-empty-error", error: {message: "TypeError"}});
+    expect(largeObject.isEligible).toBe(true);
+    expect(largeObject.error.message).toBe(`{"data":"${"x".repeat(491)}...`);
+});
