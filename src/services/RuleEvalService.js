@@ -131,7 +131,6 @@ export const subjectSummaryRule = async (rule, entity, context) => {
 
 export const isEligibleForEntityType = async (individual, entityType, bundleRuleParams, context) => {
     let eligible = true;
-    const rulesFromTheBundle = await getAllRuleItemsFor(entityType.uuid, bundleRuleParams.ruleType, entityType);
     if (!_.isNil(entityType.entityEligibilityCheckRule) && !_.isEmpty(_.trim(entityType.entityEligibilityCheckRule))) {
         try {
             const code = removeStrictFromRuleCode(entityType.entityEligibilityCheckRule);
@@ -149,8 +148,11 @@ export const isEligibleForEntityType = async (individual, entityType, bundleRule
                 "error": {message: err.message, stack: err.stack}
             };
         }
-    } else if (!_.isEmpty(rulesFromTheBundle)) {
-        eligible = runRuleAndSaveFailure(_.last(rulesFromTheBundle), bundleRuleParams.entityName, {individual}, true);
+    } else {
+        const rulesFromTheBundle = await getAllRuleItemsFor(entityType.uuid, bundleRuleParams.ruleType, entityType);
+        if (!_.isEmpty(rulesFromTheBundle)) {
+            eligible = runRuleAndSaveFailure(_.last(rulesFromTheBundle), bundleRuleParams.entityName, {individual}, true);
+        }
     }
     return {
         "isEligible": eligible,

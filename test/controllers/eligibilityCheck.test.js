@@ -113,3 +113,23 @@ test("failing to fetch the rules fails the whole check instead of making every p
     expect(body.status).toBe("failure");
     expect(body.eligibilityRuleEntities).toBeUndefined();
 });
+
+test("programs with their own rule are checked without fetching the rules, so a failed fetch only affects programs without one", async () => {
+    ruleService.getApplicableRules.mockClear();
+    ruleService.getApplicableRules.mockRejectedValue(new Error("Request failed with status code 401"));
+    try {
+        const res = await checkEligibility([
+            program("fine", "'use strict'; ({params, imports}) => true;"),
+            program("ineligible", "'use strict'; ({params, imports}) => false;"),
+        ]);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json.mock.calls[0][0].eligibilityRuleEntities).toEqual([
+            {isEligible: true, typeUUID: "fine"},
+            {isEligible: false, typeUUID: "ineligible"},
+        ]);
+        expect(ruleService.getApplicableRules).not.toHaveBeenCalled();
+    } finally {
+        ruleService.getApplicableRules.mockResolvedValue([]);
+    }
+});
