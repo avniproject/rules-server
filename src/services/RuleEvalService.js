@@ -145,7 +145,7 @@ export const isEligibleForEntityType = async (individual, entityType, bundleRule
             return {
                 "isEligible": true,
                 "typeUUID": entityType.uuid,
-                "error": {message: err.message, stack: err.stack}
+                "error": {message: _.get(err, "message") || String(err), stack: _.get(err, "stack") || String(err)}
             };
         }
     } else {

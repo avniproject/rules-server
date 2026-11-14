@@ -133,3 +133,13 @@ test("programs with their own rule are checked without fetching the rules, so a 
         ruleService.getApplicableRules.mockResolvedValue([]);
     }
 });
+
+test("a rule that throws something other than an Error still reports a message", async () => {
+    const res = await checkEligibility([
+        program("throws-string", "'use strict'; ({params, imports}) => { throw 'QA1079 not an Error'; };"),
+    ]);
+
+    expect(res.json.mock.calls[0][0].eligibilityRuleEntities).toEqual([
+        {isEligible: true, typeUUID: "throws-string", error: {message: "QA1079 not an Error", stack: "QA1079 not an Error"}},
+    ]);
+});
