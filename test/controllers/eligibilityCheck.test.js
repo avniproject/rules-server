@@ -178,3 +178,19 @@ test("an Error without a message is reported by its name, and a large thrown obj
     expect(largeObject.isEligible).toBe(true);
     expect(largeObject.error.message).toBe(`{"data":"${"x".repeat(491)}...`);
 });
+
+test("thrown values the server could not read, or that would lose detail, are sent as text", async () => {
+    const res = await checkEligibility([
+        program("object-message", "'use strict'; ({params, imports}) => { throw {message: {code: 1}}; };"),
+        program("empty-object", "'use strict'; ({params, imports}) => { throw {}; };"),
+        program("long-error", "'use strict'; ({params, imports}) => { throw new Error('y'.repeat(2000)); };"),
+        program("emoji-at-the-cut", "'use strict'; ({params, imports}) => { throw new Error('a'.repeat(499) + '\u{1F600}' + 'b'.repeat(10)); };"),
+    ]);
+
+    const [objectMessage, emptyObject, longError, emojiAtTheCut] = res.json.mock.calls[0][0].eligibilityRuleEntities;
+    expect(objectMessage.error).toEqual({message: '{"message":{"code":1}}', stack: '{"message":{"code":1}}'});
+    expect(emptyObject.error).toEqual({message: "{}", stack: "{}"});
+    expect(longError.error.message).toBe(`${"y".repeat(500)}...`);
+    expect(Array.from(longError.error.stack).length).toBeLessThanOrEqual(4003);
+    expect(emojiAtTheCut.error.message).toBe(`${"a".repeat(499)}\u{1F600}...`);
+});

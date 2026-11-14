@@ -129,17 +129,25 @@ export const subjectSummaryRule = async (rule, entity, context) => {
     return [];
 };
 
-const maxThrownValueLength = 500;
+const maxErrorMessageLength = 500;
+const maxErrorStackLength = 4000;
+
+const cutText = (text, maxLength) => {
+    const characters = Array.from(text);
+    return characters.length > maxLength ? `${characters.slice(0, maxLength).join("")}...` : text;
+};
 
 const describeThrownValue = (value) => {
     try {
-        const json = _.isObject(value) && !(value instanceof Error) ? JSON.stringify(value) : undefined;
-        const text = json && json !== "{}" ? json : String(value);
-        return text.length > maxThrownValueLength ? `${text.slice(0, maxThrownValueLength)}...` : text;
+        if (value instanceof Error || !_.isObject(value)) return String(value);
+        const json = JSON.stringify(value);
+        return _.isPlainObject(value) || _.isArray(value) || json !== "{}" ? json : String(value);
     } catch (e) {
         return "Rule threw a value that cannot be converted to text";
     }
 };
+
+const textOrDescription = (text, thrownValue) => _.isString(text) && text !== "" ? text : describeThrownValue(thrownValue);
 
 export const isEligibleForEntityType = async (individual, entityType, bundleRuleParams, context) => {
     let eligible = true;
@@ -157,7 +165,10 @@ export const isEligibleForEntityType = async (individual, entityType, bundleRule
             return {
                 "isEligible": true,
                 "typeUUID": entityType.uuid,
-                "error": {message: _.get(err, "message") || describeThrownValue(err), stack: _.get(err, "stack") || describeThrownValue(err)}
+                "error": {
+                    message: cutText(textOrDescription(_.get(err, "message"), err), maxErrorMessageLength),
+                    stack: cutText(textOrDescription(_.get(err, "stack"), err), maxErrorStackLength)
+                }
             };
         }
     } else {
