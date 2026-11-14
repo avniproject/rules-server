@@ -129,6 +129,14 @@ export const subjectSummaryRule = async (rule, entity, context) => {
     return [];
 };
 
+const describeThrownValue = (value) => {
+    try {
+        return String(value);
+    } catch (e) {
+        return "Rule threw a value that cannot be converted to text";
+    }
+};
+
 export const isEligibleForEntityType = async (individual, entityType, bundleRuleParams, context) => {
     let eligible = true;
     if (!_.isNil(entityType.entityEligibilityCheckRule) && !_.isEmpty(_.trim(entityType.entityEligibilityCheckRule))) {
@@ -145,7 +153,7 @@ export const isEligibleForEntityType = async (individual, entityType, bundleRule
             return {
                 "isEligible": true,
                 "typeUUID": entityType.uuid,
-                "error": {message: _.get(err, "message") || String(err), stack: _.get(err, "stack") || String(err)}
+                "error": {message: _.get(err, "message") || describeThrownValue(err), stack: _.get(err, "stack") || describeThrownValue(err)}
             };
         }
     } else {

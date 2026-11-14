@@ -143,3 +143,16 @@ test("a rule that throws something other than an Error still reports a message",
         {isEligible: true, typeUUID: "throws-string", error: {message: "QA1079 not an Error", stack: "QA1079 not an Error"}},
     ]);
 });
+
+test("a rule that throws a value that cannot be converted to text is still kept eligible on its own", async () => {
+    const res = await checkEligibility([
+        program("throws-bare-object", "'use strict'; ({params, imports}) => { throw Object.create(null); };"),
+        program("ineligible", "'use strict'; ({params, imports}) => false;"),
+    ]);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json.mock.calls[0][0].eligibilityRuleEntities).toEqual([
+        {isEligible: true, typeUUID: "throws-bare-object", error: {message: "Rule threw a value that cannot be converted to text", stack: "Rule threw a value that cannot be converted to text"}},
+        {isEligible: false, typeUUID: "ineligible"},
+    ]);
+});
