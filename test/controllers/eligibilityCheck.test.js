@@ -1,5 +1,6 @@
 import {encounterEligibility} from "../../src/controllers/rulesController";
 import {getMockReq, getMockRes} from "@jest-mock/express";
+import ruleService from "../../src/services/RuleService";
 
 jest.mock("../../src/services/RuleService", () => ({
     __esModule: true,
@@ -98,4 +99,17 @@ test("a throwing encounter eligibility rule is reported for that encounter type 
     const {eligibilityRuleEntities} = res.json.mock.calls[0][0];
     expect(eligibilityRuleEntities[0]).toMatchObject({isEligible: true, typeUUID: "throwing-visit", error: {message: expect.any(String)}});
     expect(eligibilityRuleEntities[1]).toEqual({isEligible: false, typeUUID: "ineligible-visit"});
+});
+
+test("failing to fetch the rules fails the whole check instead of making every program eligible", async () => {
+    ruleService.getApplicableRules.mockRejectedValueOnce(new Error("Request failed with status code 401"));
+    const res = await checkEligibility([
+        program("ineligible", "'use strict'; ({params, imports}) => false;"),
+        program("no-rule", null),
+    ]);
+
+    expect(res.status).toHaveBeenCalledWith(222);
+    const body = res.json.mock.calls[0][0];
+    expect(body.status).toBe("failure");
+    expect(body.eligibilityRuleEntities).toBeUndefined();
 });

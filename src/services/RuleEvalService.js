@@ -133,12 +133,22 @@ export const isEligibleForEntityType = async (individual, entityType, bundleRule
     let eligible = true;
     const rulesFromTheBundle = await getAllRuleItemsFor(entityType.uuid, bundleRuleParams.ruleType, entityType);
     if (!_.isNil(entityType.entityEligibilityCheckRule) && !_.isEmpty(_.trim(entityType.entityEligibilityCheckRule))) {
-        const code = removeStrictFromRuleCode(entityType.entityEligibilityCheckRule);
-        const ruleFunc = eval(code);
-        eligible = ruleFunc({
-            params: {entity: individual, services, ...ruleContext(context)},
-            imports: getImports()
-        });
+        try {
+            const code = removeStrictFromRuleCode(entityType.entityEligibilityCheckRule);
+            const ruleFunc = eval(code);
+            eligible = ruleFunc({
+                params: {entity: individual, services, ...ruleContext(context)},
+                imports: getImports()
+            });
+        } catch (err) {
+            // Same as mobile: a rule that throws leaves the type eligible. The error goes back so the server can record it.
+            console.log(err);
+            return {
+                "isEligible": true,
+                "typeUUID": entityType.uuid,
+                "error": {message: err.message, stack: err.stack}
+            };
+        }
     } else if (!_.isEmpty(rulesFromTheBundle)) {
         eligible = runRuleAndSaveFailure(_.last(rulesFromTheBundle), bundleRuleParams.entityName, {individual}, true);
     }
